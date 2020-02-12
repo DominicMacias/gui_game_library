@@ -32,7 +32,7 @@ class Main_Menu(tk.Frame):
         self.btn_search = tk.Button(self, text = "  Search  ", command = self.raise_search, font = NON_TITLE_FONT)
         self.btn_search.grid(row = 3, column = 0)
         
-        self.btn_remove = tk.Button(self, text = "  Remove  ", font = NON_TITLE_FONT)
+        self.btn_remove = tk.Button(self, text = "  Remove  ", command = self.raise_remove, font = NON_TITLE_FONT)
         self.btn_remove.grid(row = 4, column = 0)
         
         self.btn_save = tk.Button(self, text = "   Save   ", command = self.save, font = NON_TITLE_FONT)
@@ -42,10 +42,13 @@ class Main_Menu(tk.Frame):
         frame_add_or_edit.tkraise()
     
     def raise_edit(self):
-        print("raising edit")
+        frame_edit.tkraise()
     
     def raise_search(self):
         frame_search.tkraise()
+        
+    def raise_remove(self):
+        frame_remove.tkraise()
     
     def save(self):
         messagebox.showinfo("Save", "File Saved")
@@ -159,6 +162,32 @@ class Add_Or_Edit_Buttons(tk.Frame):
         frame_menu.tkraise()
 
 
+class Edit(tk.Frame):
+    def __init__(self):
+        tk.Frame.__init__(self)
+        
+        self.lbl_which_title = tk.Label(self, text = "Which Title would you like to edit?", font = TITLE_FONT)
+        self.lbl_which_title.grid(row = 0, column = 0, columnspan = 2, sticky = "news")
+        
+        titles = ["Title1", "Title2"]
+        self.tkvar = tk.StringVar(self)
+        self.tkvar.set(titles[0])
+        
+        self.dpdn_titles = tk.OptionMenu(self, self.tkvar, *titles)
+        self.dpdn_titles.grid(row = 1, column = 0, columnspan = 2, pady = 50, sticky = "news")
+        
+        self.btn_cancel = tk.Button(self, text = "Cancel", command = self.cancel, font = NON_TITLE_FONT)
+        self.btn_cancel.grid(row = 2, column = 0, sticky = "news")
+        
+        self.btn_confirm = tk.Button(self, text = "Confirm", command = self.confirm, font = NON_TITLE_FONT)
+        self.btn_confirm.grid(row = 2, column = 1, sticky = "news")
+        
+    def cancel(self):
+        frame_menu.tkraise()
+        
+    def confirm(self):
+        frame_add_or_edit.tkraise()
+
 class Search(tk.Frame):
     def __init__(self):
         tk.Frame.__init__(self)
@@ -261,6 +290,34 @@ class Search_Parameters(tk.Frame):
         self.chk_developer = tk.Checkbutton(self, text = "Notes", font = NON_TITLE_FONT)
         self.chk_developer.grid(row = 4, column = 4, sticky = "nsw")
 
+class Remove(tk.Frame):
+    def __init__(self):
+        tk.Frame.__init__(self)
+        
+        
+        self.lbl_which_title = tk.Label(self, text = "Which Title would you like to remove?", font = TITLE_FONT)
+        self.lbl_which_title.grid(row = 0, column = 0, columnspan = 2, sticky = "news")
+        
+        titles = ["Title1", "Title2"]
+        self.tkvar = tk.StringVar(self)
+        self.tkvar.set(titles[0])
+        
+        self.dpdn_titles = tk.OptionMenu(self, self.tkvar, *titles)
+        self.dpdn_titles.grid(row = 1, column = 0, columnspan = 2, pady = 50, sticky = "news")
+        
+        self.btn_cancel = tk.Button(self, text = "Cancel", command = self.cancel, font = NON_TITLE_FONT)
+        self.btn_cancel.grid(row = 2, column = 0, sticky = "news")
+        
+        self.btn_confirm = tk.Button(self, text = "Confirm", command = self.cancel, font = NON_TITLE_FONT)
+        self.btn_confirm.grid(row = 2, column = 1, sticky = "news")
+        
+    def cancel(self):
+        frame_menu.tkraise()
+        
+    def confirm(self):
+        messagebox.showinfo("Remove", "Title Removed")
+        frame_menu.tkraise()
+
 
 #Global Functions
 global games
@@ -287,8 +344,13 @@ if __name__ == "__main__":
     frame_add_or_edit.grid(row = 0, column = 0, sticky = "news")
     
     frame_search = Search()
-    frame_search.grid(row = 0, column = 0, sticky = "news")
+    frame_search.grid(row = 0, column = 0, sticky = "news")\
+    
+    frame_edit = Edit()
+    frame_edit.grid(row = 0, column = 0, sticky = "news")
+    
+    frame_remove = Remove()
+    frame_remove.grid(row = 0, column = 0, sticky = "news")
     
     frame_menu.tkraise()
-    frame_add_or_edit.tkraise()
     root.mainloop()
