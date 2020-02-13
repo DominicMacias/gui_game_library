@@ -39,16 +39,16 @@ class Main_Menu(tk.Frame):
         self.btn_save.grid(row = 5, column = 0)
     
     def raise_add(self):
-        frame_add_or_edit.tkraise()
+        frm_add_or_edit.tkraise()
     
     def raise_edit(self):
-        frame_edit.tkraise()
+        frm_edit.tkraise()
     
     def raise_search(self):
-        frame_search.tkraise()
+        frm_search.tkraise()
         
     def raise_remove(self):
-        frame_remove.tkraise()
+        frm_remove.tkraise()
     
     def save(self):
         messagebox.showinfo("Save", "File Saved")
@@ -59,7 +59,7 @@ class Add_Or_edit(tk.Frame):
     def __init__(self):
         tk.Frame.__init__(self)
         
-        self.lbl_title = tk.Label(self, text = "  Add Game  ", font = TITLE_FONT)
+        self.lbl_title = tk.Label(self, text = "  Add/Edit Game  ", font = TITLE_FONT)
         self.lbl_title.grid(row = 0, column = 0, columnspan = 4, pady = 20)
         
         self.lbl_genre = tk.Label(self, text = "Genre:", font = NON_TITLE_FONT)
@@ -112,8 +112,8 @@ class Add_Or_edit(tk.Frame):
         self.lbl_gamemodes = tk.Label(self, text = "Gamemode(s):", font = NON_TITLE_FONT)
         self.lbl_gamemodes.grid(row = 4, column = 2)
         
-        self.dpdn_gamemodes = tk.OptionMenu(self, self.tkvar, *gamemodes)
-        self.dpdn_gamemodes.grid(row = 4, column = 3, sticky = "news")
+        self.dbx_gamemodes = tk.OptionMenu(self, self.tkvar, *gamemodes)
+        self.dbx_gamemodes.grid(row = 4, column = 3, sticky = "news")
         
         self.lbl_price = tk.Label(self, text = "Price (USD):", font = NON_TITLE_FONT)
         self.lbl_price.grid(row = 5, column = 0)
@@ -133,12 +133,12 @@ class Add_Or_edit(tk.Frame):
         self.lbl_notes = tk.Label(self, text = "Notes:", font = NON_TITLE_FONT)
         self.lbl_notes.grid(row = 7, column = 0,  columnspan = 4, sticky = "news")
         
-        self.scl_notes = ScrolledText(self, width = 40, height = 8)
-        self.scl_notes.grid(row = 8, column = 0, columnspan = 4)
+        self.scr_notes = ScrolledText(self, width = 40, height = 8)
+        self.scr_notes.grid(row = 8, column = 0, columnspan = 4)
         
         #Buttons to cancel adding/editing, reset the changes, or to confirm changes
-        frame_add_or_edit_buttons = Add_Or_Edit_Buttons(self)
-        frame_add_or_edit_buttons.grid(row = 9, column = 0, columnspan = 4, sticky = "news")
+        frm_add_or_edit_buttons = Add_Or_Edit_Buttons(self)
+        frm_add_or_edit_buttons.grid(row = 9, column = 0, columnspan = 4, sticky = "news")
         
         
 class Add_Or_Edit_Buttons(tk.Frame):
@@ -159,7 +159,7 @@ class Add_Or_Edit_Buttons(tk.Frame):
         self.grid_columnconfigure(2, weight = 1)
     
     def cancel(self):
-        frame_menu.tkraise()
+        frm_menu.tkraise()
 
 
 class Edit(tk.Frame):
@@ -173,8 +173,8 @@ class Edit(tk.Frame):
         self.tkvar = tk.StringVar(self)
         self.tkvar.set(titles[0])
         
-        self.dpdn_titles = tk.OptionMenu(self, self.tkvar, *titles)
-        self.dpdn_titles.grid(row = 1, column = 0, columnspan = 2, pady = 50, sticky = "news")
+        self.dbx_titles = tk.OptionMenu(self, self.tkvar, *titles)
+        self.dbx_titles.grid(row = 1, column = 0, columnspan = 2, pady = 50, sticky = "news")
         
         self.btn_cancel = tk.Button(self, text = "Cancel", command = self.cancel, font = NON_TITLE_FONT)
         self.btn_cancel.grid(row = 2, column = 0, sticky = "news")
@@ -183,10 +183,10 @@ class Edit(tk.Frame):
         self.btn_confirm.grid(row = 2, column = 1, sticky = "news")
         
     def cancel(self):
-        frame_menu.tkraise()
+        frm_menu.tkraise()
         
     def confirm(self):
-        frame_add_or_edit.tkraise()
+        frm_add_or_edit.tkraise()
 
 class Search(tk.Frame):
     def __init__(self):
@@ -205,8 +205,8 @@ class Search(tk.Frame):
         self.lbl_search_by = tk.Label(self, text = "Search By:", font = NON_TITLE_FONT)
         self.lbl_search_by.grid(row = 1, column = 0)
         
-        self.dpdn_search_by = tk.OptionMenu(self, self.tkvar, *options)
-        self.dpdn_search_by.grid(row = 2, column = 0, sticky = "news")
+        self.dbx_search_by = tk.OptionMenu(self, self.tkvar, *options)
+        self.dbx_search_by.grid(row = 2, column = 0, sticky = "news")
         
         self.lbl_search_for = tk.Label(self, text = "Search For:", font = NON_TITLE_FONT)
         self.lbl_search_for.grid(row = 3, column = 0)
@@ -219,12 +219,12 @@ class Search(tk.Frame):
         self.chk_search_filter.grid(row = 1, column = 1, rowspan = 4)
         
         #Scrolled Text Box that shows results
-        self.scl_results = ScrolledText(self, width = 40, height = 8)
-        self.scl_results.grid(row = 5, column = 0, columnspan = 5)
+        self.scr_results = ScrolledText(self, width = 40, height = 8)
+        self.scr_results.grid(row = 5, column = 0, columnspan = 5)
         
         #Buttons to leave the frame, do the search action, or clear the results
-        frame_search_buttons = Search_Buttons(self)
-        frame_search_buttons.grid(row = 6, column = 0, columnspan = 2, sticky="news")
+        frm_search_buttons = Search_Buttons(self)
+        frm_search_buttons.grid(row = 6, column = 0, columnspan = 2, sticky="news")
 
 class Search_Buttons(tk.Frame):
     def __init__(self, master):
@@ -244,7 +244,7 @@ class Search_Buttons(tk.Frame):
         self.grid_columnconfigure(2, weight = 1)
         
     def go_back(self):
-        frame_menu.tkraise()
+        frm_menu.tkraise()
 
 class Search_Parameters(tk.Frame):
     def __init__(self,master):
@@ -302,21 +302,21 @@ class Remove(tk.Frame):
         self.tkvar = tk.StringVar(self)
         self.tkvar.set(titles[0])
         
-        self.dpdn_titles = tk.OptionMenu(self, self.tkvar, *titles)
-        self.dpdn_titles.grid(row = 1, column = 0, columnspan = 2, pady = 50, sticky = "news")
+        self.dbx_titles = tk.OptionMenu(self, self.tkvar, *titles)
+        self.dbx_titles.grid(row = 1, column = 0, columnspan = 2, pady = 50, sticky = "news")
         
         self.btn_cancel = tk.Button(self, text = "Cancel", command = self.cancel, font = NON_TITLE_FONT)
         self.btn_cancel.grid(row = 2, column = 0, sticky = "news")
         
-        self.btn_confirm = tk.Button(self, text = "Confirm", command = self.cancel, font = NON_TITLE_FONT)
-        self.btn_confirm.grid(row = 2, column = 1, sticky = "news")
+        self.btn_remove = tk.Button(self, text = "Confirm", command = self.remove, font = NON_TITLE_FONT)
+        self.btn_remove.grid(row = 2, column = 1, sticky = "news")
         
     def cancel(self):
-        frame_menu.tkraise()
+        frm_menu.tkraise()
         
-    def confirm(self):
+    def remove(self):
         messagebox.showinfo("Remove", "Title Removed")
-        frame_menu.tkraise()
+        frm_menu.tkraise()
 
 
 #Global Functions
@@ -337,20 +337,20 @@ if __name__ == "__main__":
     root.title("Game Library")
     
     #Initializes the frames
-    frame_menu = Main_Menu()
-    frame_menu.grid(row = 0, column = 0, sticky = "news")
+    frm_menu = Main_Menu()
+    frm_menu.grid(row = 0, column = 0, sticky = "news")
     
-    frame_add_or_edit = Add_Or_edit()
-    frame_add_or_edit.grid(row = 0, column = 0, sticky = "news")
+    frm_add_or_edit = Add_Or_edit()
+    frm_add_or_edit.grid(row = 0, column = 0, sticky = "news")
     
-    frame_search = Search()
-    frame_search.grid(row = 0, column = 0, sticky = "news")\
+    frm_search = Search()
+    frm_search.grid(row = 0, column = 0, sticky = "news")\
     
-    frame_edit = Edit()
-    frame_edit.grid(row = 0, column = 0, sticky = "news")
+    frm_edit = Edit()
+    frm_edit.grid(row = 0, column = 0, sticky = "news")
     
-    frame_remove = Remove()
-    frame_remove.grid(row = 0, column = 0, sticky = "news")
+    frm_remove = Remove()
+    frm_remove.grid(row = 0, column = 0, sticky = "news")
     
-    frame_menu.tkraise()
+    frm_menu.tkraise()
     root.mainloop()
