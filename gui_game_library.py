@@ -59,7 +59,7 @@ class MainMenu(Screen):
         frm_edit.grid(row = 0, column = 0)
     
     def raise_search(self):
-        Screen.current = 2
+        Screen.current = 3
         Screen.switch_frame()
         
     def raise_remove(self):
@@ -124,13 +124,13 @@ class Add(Screen):
         
         #Setup for the "gamemode(s)" drop-down menu
         gamemodes = ["Single", "Multi", "Either"]
-        self.tkvar = tk.StringVar(self)
-        self.tkvar.set(gamemodes[0])        
+        self.tk_which_title = tk.StringVar(self)
+        self.tk_which_title.set(gamemodes[0])        
         
         self.lbl_gamemodes = tk.Label(self, text = "Gamemode(s):", font = NON_TITLE_FONT)
         self.lbl_gamemodes.grid(row = 4, column = 2)
         
-        self.dbx_gamemodes = tk.OptionMenu(self, self.tkvar, *gamemodes)
+        self.dbx_gamemodes = tk.OptionMenu(self, self.tk_which_title, *gamemodes)
         self.dbx_gamemodes.grid(row = 4, column = 3, sticky = "news")
         
         self.lbl_price = tk.Label(self, text = "Price (USD):", font = NON_TITLE_FONT)
@@ -188,6 +188,9 @@ class Edit(Screen):
     def __init__(self):
         Screen.__init__(self)
         
+        self.checked = tk.IntVar()
+        self.editkey = 0
+        
         self.lbl_title = tk.Label(self, text = "  Edit Game  ", font = TITLE_FONT)
         self.lbl_title.grid(row = 0, column = 0, columnspan = 4, pady = 20)
         
@@ -233,15 +236,14 @@ class Edit(Screen):
         self.ent_rating = tk.Entry(self, font = NON_TITLE_FONT, bd = 3)
         self.ent_rating.grid(row = 4, column = 1)
         
-        #Setup for the "gamemode(s)" drop-down menu
-        gamemodes = ["Single", "Multi", "Either"]
-        self.tkvar = tk.StringVar(self)
-        self.tkvar.set(gamemodes[0])        
+        self.gamemodes = ["Single", "Multi", "Either"]
+        self.tk_which_gamemode = tk.StringVar(self)
+        self.tk_which_gamemode.set(self.gamemodes[0])        
         
         self.lbl_gamemodes = tk.Label(self, text = "Gamemode(s):", font = NON_TITLE_FONT)
         self.lbl_gamemodes.grid(row = 4, column = 2)
         
-        self.dbx_gamemodes = tk.OptionMenu(self, self.tkvar, *gamemodes)
+        self.dbx_gamemodes = tk.OptionMenu(self, self.tk_which_gamemode, *self.gamemodes)
         self.dbx_gamemodes.grid(row = 4, column = 3, sticky = "news")
         
         self.lbl_price = tk.Label(self, text = "Price (USD):", font = NON_TITLE_FONT)
@@ -256,7 +258,7 @@ class Edit(Screen):
         self.ent_purchase_date = tk.Entry(self, font = NON_TITLE_FONT, bd = 3)
         self.ent_purchase_date.grid(row = 5, column = 3)
         
-        self.chk_completed = tk.Checkbutton(self, text = "Completed?", font = NON_TITLE_FONT)
+        self.chk_completed = tk.Checkbutton(self, text = "Completed?", variable = self.checked, font = NON_TITLE_FONT)
         self.chk_completed.grid(row = 6, column = 0, columnspan = 4, sticky = "news")
         
         self.lbl_notes = tk.Label(self, text = "Notes:", font = NON_TITLE_FONT)
@@ -268,10 +270,52 @@ class Edit(Screen):
         #Buttons to cancel adding/editing, reset the changes, or to confirm changes
         frm_add_or_edit_buttons = Edit_Buttons(self)
         frm_add_or_edit_buttons.grid(row = 9, column = 0, columnspan = 4, sticky = "news")
+    
+    def update(self):
+        entry = games[self.editkey]
+        
+        self.ent_genre.delete(0, "end")
+        self.ent_genre.insert(0, entry[0])
+        
+        self.ent_title.delete(0, "end")
+        self.ent_title.insert(0, entry[1])
+        
+        self.ent_developer.delete(0, "end")
+        self.ent_developer.insert(0, entry[2])
+        
+        self.ent_publisher.delete(0, "end")
+        self.ent_publisher.insert(0, entry[3])
+        
+        self.ent_platform.delete(0, "end")
+        self.ent_platform.insert(0, entry[4])
+        
+        self.ent_release_date.delete(0, "end")
+        self.ent_release_date.insert(0, entry[5])
+        
+        self.ent_rating.delete(0, "end")
+        self.ent_rating.insert(0, entry[6])
+        
+        for i in range(3):
+            if entry[7] == self.gamemodes[i]:
+                self.tk_which_gamemode.set(self.gamemodes[i])
+        
+        self.ent_price.delete(0, "end")
+        self.ent_price.insert(0, entry[8])
+        
+        if entry[9] == "Yes":
+            self.chk_completed.toggle()
+        
+        self.ent_purchase_date.delete(0, "end")
+        self.ent_purchase_date.insert(0, entry[10])
+        
+        self.scr_notes.delete('1.0', "end")
+        self.scr_notes.insert('1.0', entry[11])
+
 
 class Edit_Buttons(tk.Frame):
-    def __init__(self, master):
-        tk.Frame.__init__(self, master)
+    def __init__(self, parent):
+        tk.Frame.__init__(self, master = parent)
+        self.parent = parent
         
         self.btn_cancel = tk.Button(self, text = "Cancel", command = self.cancel, font = NON_TITLE_FONT)
         self.btn_cancel.grid(row = 0, column = 0)
@@ -291,6 +335,18 @@ class Edit_Buttons(tk.Frame):
         Screen.switch_frame()
         
     def confirm(self):
+        if self.parent.checked.get() == 1:
+            self.completed = "yes"
+        else:
+            self.completed = "no"
+            
+        self.entries = [self.parent.ent_genre.get(), self.parent.ent_title.get(),
+                        self.parent.ent_developer.get(), self.parent.ent_publisher.get(),
+                        self.parent.ent_platform.get(), self.parent.ent_release_date.get(),
+                        self.parent.ent_rating.get(), self.parent.tk_which_gamemode.get(),
+                        self.parent.ent_price.get(), self.completed,
+                        self.parent.ent_purchase_date.get(), self.parent.scr_notes.get('0.0', "end")]
+        games[self.parent.editkey] = self.entries
         Screen.current = 0
         Screen.switch_frame()
 
@@ -302,11 +358,16 @@ class EditSelect(tk.Frame):
         self.lbl_which_title = tk.Label(self, text = "Which Title would you like to edit?", font = TITLE_FONT)
         self.lbl_which_title.grid(row = 0, column = 0, columnspan = 2, sticky = "news")
         
-        titles = ["Title1", "Title2"]
-        self.tkvar = tk.StringVar(self)
-        self.tkvar.set(titles[0])
+        self.titles = []
+        for key in games.keys():
+            self.titles.append(games[key][1])
+        self.titles.sort()
+        self.titles = ["Select a title"] + self.titles
         
-        self.dbx_titles = tk.OptionMenu(self, self.tkvar, *titles)
+        self.tk_which_title = tk.StringVar(self)
+        self.tk_which_title.set(self.titles[0])
+        
+        self.dbx_titles = tk.OptionMenu(self, self.tk_which_title, *self.titles)
         self.dbx_titles.grid(row = 1, column = 0, columnspan = 2, pady = 50, sticky = "news")
         
         self.btn_cancel = tk.Button(self, text = "Cancel", command = self.cancel, font = NON_TITLE_FONT)
@@ -319,9 +380,17 @@ class EditSelect(tk.Frame):
         self.parent.destroy()
         
     def confirm(self):
-        Screen.current = 2
-        Screen.switch_frame()
-        self.parent.destroy()
+        if self.tk_which_title.get() == self.titles[0]:
+            pass
+        else:
+            Screen.current = 2
+            for i in range(len(self.titles)+1):
+                if self.titles[i] == self.tk_which_title.get():
+                    screens[2].editkey = i
+                    break
+            screens[2].update()
+            Screen.switch_frame()
+            self.parent.destroy()
 
 class Search(Screen):
     def __init__(self):
@@ -439,11 +508,16 @@ class Remove(tk.Frame):
         self.lbl_which_title = tk.Label(self, text = "Which Title would you like to remove?", font = TITLE_FONT)
         self.lbl_which_title.grid(row = 0, column = 0, columnspan = 2, sticky = "news")
         
-        titles = ["Title1", "Title2"]
-        self.tk_which_title = tk.StringVar(self)
-        self.tk_which_title.set(titles[0])
+        self.titles = []
+        for i in games.keys():
+            self.titles.append(games[i][1])
+        self.titles.sort()
+        self.titles = ["Select a title"] + self.titles
         
-        self.dbx_titles = tk.OptionMenu(self, self.tk_which_title, *titles)
+        self.tk_which_title = tk.StringVar(self)
+        self.tk_which_title.set(self.titles[0])
+        
+        self.dbx_titles = tk.OptionMenu(self, self.tk_which_title, *self.titles)
         self.dbx_titles.grid(row = 1, column = 0, columnspan = 2, pady = 50, sticky = "news")
         
         self.btn_cancel = tk.Button(self, text = "Cancel", command = self.cancel, font = NON_TITLE_FONT)
@@ -456,12 +530,26 @@ class Remove(tk.Frame):
         self.parent.destroy()
         
     def remove(self):
-        messagebox.showinfo("Remove", "Title Removed")
-        self.parent.destroy()
-        Screen.current = 0
-        Screen.switch_frame()
-
-#Main Function
+        if self.tk_which_title.get() == self.titles[0]:
+            pass
+        else:
+            msg_box = messagebox.askquestion("Confirm", "Are you sure you want to remove this title:\n" + self.tk_which_title.get())
+            if msg_box == "yes":
+                self.selected_key = 0
+                for keys in games.keys():
+                    if self.tk_which_title.get() == games[keys][1]:
+                        self.selected_key = keys
+                        break
+                print(self.selected_key)
+                for key in range(1, len(games)+1):
+                    if key >= self.selected_key and key != len(games):
+                        games[key] = games[key+1]
+                    if key == len(games):
+                        games.pop(key)
+                messagebox.showinfo("Remove", "Title Removed")
+            if msg_box == "no":
+                self.parent.destroy()
+        
 if __name__ == "__main__":
     #File Loader
     try:
