@@ -50,6 +50,7 @@ class MainMenu(Screen):
     
     def raise_add(self):
         Screen.current = 1
+        screens[1].reset()
         Screen.switch_frame()
     
     def raise_edit(self):
@@ -69,13 +70,17 @@ class MainMenu(Screen):
         frm_remove.grid(row = 0, column = 0)
     
     def save(self):
+        datafile = open("game_lib.pickle", "wb")
+        p.dump(games, datafile)
+        datafile.close()
         messagebox.showinfo("Save", "File Saved")
-    
 
 
 class Add(Screen):
     def __init__(self):
         Screen.__init__(self)
+        
+        self.checked = tk.IntVar()
         
         self.lbl_title = tk.Label(self, text = "  Add Game  ", font = TITLE_FONT)
         self.lbl_title.grid(row = 0, column = 0, columnspan = 4, pady = 20)
@@ -123,14 +128,14 @@ class Add(Screen):
         self.ent_rating.grid(row = 4, column = 1)
         
         #Setup for the "gamemode(s)" drop-down menu
-        gamemodes = ["Single", "Multi", "Either"]
-        self.tk_which_title = tk.StringVar(self)
-        self.tk_which_title.set(gamemodes[0])        
+        self.gamemodes = ["Single", "Multi", "Either"]
+        self.tk_which_gamemode = tk.StringVar(self)
+        self.tk_which_gamemode.set(self.gamemodes[0])        
         
         self.lbl_gamemodes = tk.Label(self, text = "Gamemode(s):", font = NON_TITLE_FONT)
         self.lbl_gamemodes.grid(row = 4, column = 2)
         
-        self.dbx_gamemodes = tk.OptionMenu(self, self.tk_which_title, *gamemodes)
+        self.dbx_gamemodes = tk.OptionMenu(self, self.tk_which_gamemode, *self.gamemodes)
         self.dbx_gamemodes.grid(row = 4, column = 3, sticky = "news")
         
         self.lbl_price = tk.Label(self, text = "Price (USD):", font = NON_TITLE_FONT)
@@ -157,15 +162,42 @@ class Add(Screen):
         #Buttons to cancel adding/editing, reset the changes, or to confirm changes
         frm_add_or_edit_buttons = Add_Buttons(self)
         frm_add_or_edit_buttons.grid(row = 9, column = 0, columnspan = 4, sticky = "news")
+    
+    def reset(self):
+        self.ent_genre.delete(0, "end")
+        
+        self.ent_title.delete(0, "end")
+        
+        self.ent_developer.delete(0, "end")
+        
+        self.ent_publisher.delete(0, "end")
+        
+        self.ent_platform.delete(0, "end")
+        
+        self.ent_release_date.delete(0, "end")
+        
+        self.ent_rating.delete(0, "end")
+        
+        self.tk_which_gamemode.set(self.gamemodes[0])
+        
+        self.ent_price.delete(0, "end")
+        
+        self.chk_completed.deselect()
+        
+        self.ent_purchase_date.delete(0, "end")
+        
+        self.scr_notes.delete(1.0, "end")
+        
 
 class Add_Buttons(tk.Frame):
-    def __init__(self, master):
-        tk.Frame.__init__(self, master)
+    def __init__(self, parent):
+        tk.Frame.__init__(self, master = parent)
+        self.parent = parent
         
         self.btn_cancel = tk.Button(self, text = "Cancel", command = self.cancel, font = NON_TITLE_FONT)
         self.btn_cancel.grid(row = 0, column = 0)
         
-        self.btn_reset = tk.Button(self, text = "Reset", font = NON_TITLE_FONT)
+        self.btn_reset = tk.Button(self, text = "Reset", command = self.parent.reset, font = NON_TITLE_FONT)
         self.btn_reset.grid(row = 0, column = 1, padx = 50)
         
         self.btn_confirm = tk.Button(self, text = "Confirm", command = self.confirm, font = NON_TITLE_FONT)
@@ -180,6 +212,19 @@ class Add_Buttons(tk.Frame):
         Screen.switch_frame()
         
     def confirm(self):
+        if self.parent.checked.get() == 1:
+            self.completed = "yes"
+        else:
+            self.completed = "no"
+            
+        self.entries = [self.parent.ent_genre.get(), self.parent.ent_title.get(),
+                        self.parent.ent_developer.get(), self.parent.ent_publisher.get(),
+                        self.parent.ent_platform.get(), self.parent.ent_release_date.get(),
+                        self.parent.ent_rating.get(), self.parent.tk_which_gamemode.get(),
+                        self.parent.ent_price.get(), self.completed,
+                        self.parent.ent_purchase_date.get(), self.parent.scr_notes.get('0.0', "end")]
+        games[len(games)+1] = self.entries
+        messagebox.showinfo("Add", "Entry has been added")
         Screen.current = 0
         Screen.switch_frame()
 
@@ -320,15 +365,11 @@ class Edit_Buttons(tk.Frame):
         self.btn_cancel = tk.Button(self, text = "Cancel", command = self.cancel, font = NON_TITLE_FONT)
         self.btn_cancel.grid(row = 0, column = 0)
         
-        self.btn_reset = tk.Button(self, text = "Reset", font = NON_TITLE_FONT)
-        self.btn_reset.grid(row = 0, column = 1, padx = 50)
-        
         self.btn_confirm = tk.Button(self, text = "Confirm", command = self.confirm, font = NON_TITLE_FONT)
-        self.btn_confirm.grid(row = 0, column = 2)
+        self.btn_confirm.grid(row = 0, column = 1)
         
         self.grid_columnconfigure(0, weight = 1)
         self.grid_columnconfigure(1, weight = 1)
-        self.grid_columnconfigure(2, weight = 1)
     
     def cancel(self):
         Screen.current = 0
@@ -361,7 +402,6 @@ class EditSelect(tk.Frame):
         self.titles = []
         for key in games.keys():
             self.titles.append(games[key][1])
-        self.titles.sort()
         self.titles = ["Select a title"] + self.titles
         
         self.tk_which_title = tk.StringVar(self)
@@ -397,11 +437,11 @@ class Search(Screen):
         Screen.__init__(self)
         
         #Setup for the "Search By:" drop-down menu
-        options = ["Genre", "Title", "Developer", "Publisher", "Platform", "Release Date",
-                   "Rating", "Gamemode(s)", "Price (USD)", "Completion", "Purchase Date",
-                   "Notes"]
+        self.options = ["Select Option", "Genre", "Title", "Developer", "Publisher", "Platform", "Release Date",
+                        "Rating", "Gamemode(s)", "Price (USD)", "Completion", "Purchase Date",
+                        "Notes"]
         self.tk_search_by = tk.StringVar(self)
-        self.tk_search_by.set(options[0])
+        self.tk_search_by.set(self.options[0])
         
         #Search Parameters
         self.lbl_title = tk.Label(self, text = "Search", font = TITLE_FONT)
@@ -410,35 +450,50 @@ class Search(Screen):
         self.lbl_search_by = tk.Label(self, text = "Search By:", font = NON_TITLE_FONT)
         self.lbl_search_by.grid(row = 1, column = 0)
         
-        self.dbx_search_by = tk.OptionMenu(self, self.tk_search_by, *options)
+        self.dbx_search_by = tk.OptionMenu(self, self.tk_search_by, *self.options)
         self.dbx_search_by.grid(row = 2, column = 0, sticky = "news")
         
         self.lbl_search_for = tk.Label(self, text = "Search For:", font = NON_TITLE_FONT)
         self.lbl_search_for.grid(row = 3, column = 0)
         
         self.ent_search_for = tk.Entry(self, font = NON_TITLE_FONT)
-        #Screen.current = 2grid(row = 4, column = 0)
-        
-        #Check boxes for printing specific catergories
-        self.chk_search_filter = Search_Parameters(self)
-        self.chk_search_filter.grid(row = 1, column = 1, rowspan = 4)
+        self.ent_search_for.grid(row = 4, column = 0)
         
         #Scrolled Text Box that shows results
         self.scr_results = ScrolledText(self, width = 40, height = 8)
         self.scr_results.grid(row = 5, column = 0, columnspan = 5)
         
         #Buttons to leave the frame, do the search action, or clear the results
-        frm_search_buttons = Search_Buttons(self)
-        frm_search_buttons.grid(row = 6, column = 0, columnspan = 2, sticky="news")
-
+        self.frm_search_buttons = Search_Buttons(self)
+        self.frm_search_buttons.grid(row = 6, column = 0, columnspan = 2, sticky = "news")
+        
+        #Check boxes for printing specific catergories
+        self.chk_search_filter = Search_Parameters(self)
+        self.chk_search_filter.grid(row = 1, column = 1, rowspan = 4)
+        
+        
 class Search_Buttons(tk.Frame):
-    def __init__(self, master):
-        tk.Frame.__init__(self, master)
+    def __init__(self, parent):
+        tk.Frame.__init__(self, master = parent)
+        self.parent = parent
+        
+        self.genre_checked = tk.BooleanVar(self)
+        self.title_checked = tk.BooleanVar(self)
+        self.developer_checked = tk.BooleanVar(self)
+        self.publisher_checked = tk.BooleanVar(self)
+        self.platform_checked = tk.BooleanVar(self)
+        self.release_date_checked = tk.BooleanVar(self)
+        self.rating_checked = tk.BooleanVar(self)
+        self.gamemodes_checked = tk.BooleanVar(self)
+        self.price_checked = tk.BooleanVar(self)
+        self.completion_checked = tk.BooleanVar(self)
+        self.purchase_date_checked = tk.BooleanVar(self)
+        self.notes_checked = tk.BooleanVar(self)
         
         self.btn_back = tk.Button(self, text = "Back", command = self.go_back, font = NON_TITLE_FONT)
         self.btn_back.grid(row = 0, column = 0)
         
-        self.btn_back = tk.Button(self, text = "Clear", font = NON_TITLE_FONT)
+        self.btn_back = tk.Button(self, text = "Clear", command = self.clear, font = NON_TITLE_FONT)
         self.btn_back.grid(row = 0, column = 1, padx = 50)
         
         self.btn_back = tk.Button(self, text = "Submit", command = self.submit, font = NON_TITLE_FONT)
@@ -452,10 +507,49 @@ class Search_Buttons(tk.Frame):
         Screen.current = 0
         Screen.switch_frame()
         
+    def clear(self):
+        self.parent.scr_results.delete(0.0, "end")
+        
     def submit(self):
-        Screen.current = 0
-        Screen.switch_frame()    
+        self.clear()
+        search_parameter = 0
+        for i in range(1,len(self.parent.options)+1):
+            if self.parent.tk_search_by.get() == self.parent.options[i]:
+                search_parameter = i-1
+                break
+        for key in range(1, len(games.keys())+1):
+            if self.parent.ent_search_for.get().lower() in games[key][search_parameter].lower():
+                self.print_game(games[key])
 
+    
+    def print_game(self, game):
+        if self.genre_checked.get():
+            self.parent.scr_results.insert("end", "Genre:              " + game[0] + "\n")
+        if self.title_checked.get():
+            self.parent.scr_results.insert("end", "Title:              " + game[1] + "\n")
+        if self.developer_checked.get():
+            self.parent.scr_results.insert("end", "Developer:          " + game[2] + "\n")
+        if self.publisher_checked.get():
+            self.parent.scr_results.insert("end", "Publisher:          " + game[3] + "\n")
+        if self.platform_checked.get():
+            self.parent.scr_results.insert("end", "Platform:           " + game[4] + "\n")
+        if self.release_date_checked.get():
+            self.parent.scr_results.insert("end", "Release Date:       " + game[5] + "\n")
+        if self.rating_checked.get():
+            self.parent.scr_results.insert("end", "Rating:             " + game[6] + "\n")
+        if self.gamemodes_checked.get():
+            self.parent.scr_results.insert("end", "Mode(s)?:           " + game[7] + "\n")
+        if self.price_checked.get():
+            self.parent.scr_results.insert("end", "Price (USD):        " + game[8] + "\n")
+        if self.completion_checked.get():
+            self.parent.scr_results.insert("end", "Completed?:         " + game[9] + "\n")
+        if self.purchase_date_checked.get():
+            self.parent.scr_results.insert("end", "Purchase Date:      " + game[10] + "\n")
+        if self.notes_checked.get():
+            self.parent.scr_results.insert("end", "Notes:              " + game[11] + "\n")
+        self.parent.scr_results.insert("end","-------------------" + "\n")
+        
+        
 class Search_Parameters(tk.Frame):
     def __init__(self,master):
         tk.Frame.__init__(self, master)
@@ -464,40 +558,40 @@ class Search_Parameters(tk.Frame):
         self.lbl_print_filter = tk.Label(self, text = "Print Filter:", font = NON_TITLE_FONT)
         self.lbl_print_filter.grid(row = 0, column = 2, columnspan = 3, sticky = "news")
         
-        self.chk_genre = tk.Checkbutton(self, text = "Genre", font = NON_TITLE_FONT)
+        self.chk_genre = tk.Checkbutton(self, text = "Genre", variable = master.frm_search_buttons.genre_checked, font = NON_TITLE_FONT)
         self.chk_genre.grid(row = 1, column = 2, sticky = "nsw")
         
-        self.chk_title = tk.Checkbutton(self, text = "Title", font = NON_TITLE_FONT)
+        self.chk_title = tk.Checkbutton(self, text = "Title", variable = master.frm_search_buttons.title_checked, font = NON_TITLE_FONT)
         self.chk_title.grid(row = 1, column = 3, sticky = "nsw")
         
-        self.chk_developer = tk.Checkbutton(self, text = "Developer", font = NON_TITLE_FONT)
+        self.chk_developer = tk.Checkbutton(self, text = "Developer", variable = master.frm_search_buttons.developer_checked, font = NON_TITLE_FONT)
         self.chk_developer.grid(row = 1, column = 4, sticky = "nsw")
         
-        self.chk_genre = tk.Checkbutton(self, text = "Publisher", font = NON_TITLE_FONT)
+        self.chk_genre = tk.Checkbutton(self, text = "Publisher", variable = master.frm_search_buttons.publisher_checked, font = NON_TITLE_FONT)
         self.chk_genre.grid(row = 2, column = 2, sticky = "nsw")
         
-        self.chk_title = tk.Checkbutton(self, text = "Platform", font = NON_TITLE_FONT)
+        self.chk_title = tk.Checkbutton(self, text = "Platform", variable = master.frm_search_buttons.platform_checked, font = NON_TITLE_FONT)
         self.chk_title.grid(row = 2, column = 3, sticky = "nsw")
         
-        self.chk_developer = tk.Checkbutton(self, text = "Release Date", font = NON_TITLE_FONT)
+        self.chk_developer = tk.Checkbutton(self, text = "Release Date", variable = master.frm_search_buttons.release_date_checked, font = NON_TITLE_FONT)
         self.chk_developer.grid(row = 2, column = 4, sticky = "nsw")
 
-        self.chk_genre = tk.Checkbutton(self, text = "Rating", font = NON_TITLE_FONT)
+        self.chk_genre = tk.Checkbutton(self, text = "Rating", variable = master.frm_search_buttons.rating_checked, font = NON_TITLE_FONT)
         self.chk_genre.grid(row = 3, column = 2, sticky = "nsw")
         
-        self.chk_title = tk.Checkbutton(self, text = "Gamemode(s)", font = NON_TITLE_FONT)
+        self.chk_title = tk.Checkbutton(self, text = "Gamemode(s)", variable = master.frm_search_buttons.gamemodes_checked, font = NON_TITLE_FONT)
         self.chk_title.grid(row = 3, column = 3, sticky = "nsw")
         
-        self.chk_developer = tk.Checkbutton(self, text = "Price (USD)", font = NON_TITLE_FONT)
+        self.chk_developer = tk.Checkbutton(self, text = "Price (USD)", variable = master.frm_search_buttons.price_checked, font = NON_TITLE_FONT)
         self.chk_developer.grid(row = 3, column = 4, sticky = "nsw")
 
-        self.chk_genre = tk.Checkbutton(self, text = "Completed?", font = NON_TITLE_FONT)
+        self.chk_genre = tk.Checkbutton(self, text = "Completed?", variable = master.frm_search_buttons.completion_checked, font = NON_TITLE_FONT)
         self.chk_genre.grid(row = 4, column = 2, sticky = "nsw")
         
-        self.chk_title = tk.Checkbutton(self, text = "Purchase Date", font = NON_TITLE_FONT)
+        self.chk_title = tk.Checkbutton(self, text = "Purchase Date", variable = master.frm_search_buttons.purchase_date_checked, font = NON_TITLE_FONT)
         self.chk_title.grid(row = 4, column = 3, sticky = "nsw")
         
-        self.chk_developer = tk.Checkbutton(self, text = "Notes", font = NON_TITLE_FONT)
+        self.chk_developer = tk.Checkbutton(self, text = "Notes", variable = master.frm_search_buttons.notes_checked, font = NON_TITLE_FONT)
         self.chk_developer.grid(row = 4, column = 4, sticky = "nsw")
 
 class Remove(tk.Frame):
