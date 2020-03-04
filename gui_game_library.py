@@ -61,6 +61,7 @@ class MainMenu(Screen):
     
     def raise_search(self):
         Screen.current = 3
+        screens[3].frm_search_buttons.clear(all_entries = True)
         Screen.switch_frame()
         
     def raise_remove(self):
@@ -353,8 +354,8 @@ class Edit(Screen):
         self.ent_purchase_date.delete(0, "end")
         self.ent_purchase_date.insert(0, entry[10])
         
-        self.scr_notes.delete('1.0', "end")
-        self.scr_notes.insert('1.0', entry[11])
+        self.scr_notes.delete('0.0', "end")
+        self.scr_notes.insert('0.0', entry[11])
 
 
 class Edit_Buttons(tk.Frame):
@@ -438,8 +439,8 @@ class Search(Screen):
         
         #Setup for the "Search By:" drop-down menu
         self.options = ["Select Option", "Genre", "Title", "Developer", "Publisher", "Platform", "Release Date",
-                        "Rating", "Gamemode(s)", "Price (USD)", "Completion", "Purchase Date",
-                        "Notes"]
+                        "Rating", "Gamemode(s)", "Price (USD)", "Completion", "Purchase Date"]
+        
         self.tk_search_by = tk.StringVar(self)
         self.tk_search_by.set(self.options[0])
         
@@ -476,19 +477,7 @@ class Search_Buttons(tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self, master = parent)
         self.parent = parent
-        
-        self.genre_checked = tk.BooleanVar(self)
-        self.title_checked = tk.BooleanVar(self)
-        self.developer_checked = tk.BooleanVar(self)
-        self.publisher_checked = tk.BooleanVar(self)
-        self.platform_checked = tk.BooleanVar(self)
-        self.release_date_checked = tk.BooleanVar(self)
-        self.rating_checked = tk.BooleanVar(self)
-        self.gamemodes_checked = tk.BooleanVar(self)
-        self.price_checked = tk.BooleanVar(self)
-        self.completion_checked = tk.BooleanVar(self)
-        self.purchase_date_checked = tk.BooleanVar(self)
-        self.notes_checked = tk.BooleanVar(self)
+        self.initialize_booleans()
         
         self.btn_back = tk.Button(self, text = "Back", command = self.go_back, font = NON_TITLE_FONT)
         self.btn_back.grid(row = 0, column = 0)
@@ -503,50 +492,60 @@ class Search_Buttons(tk.Frame):
         self.grid_columnconfigure(1, weight = 1)
         self.grid_columnconfigure(2, weight = 1)
         
+    def initialize_booleans(self):
+        self.genre_checked = tk.BooleanVar(self, True)
+        self.title_checked = tk.BooleanVar(self, True)
+        self.developer_checked = tk.BooleanVar(self, True)
+        self.publisher_checked = tk.BooleanVar(self, True)
+        self.platform_checked = tk.BooleanVar(self, True)
+        self.release_date_checked = tk.BooleanVar(self, True)
+        self.rating_checked = tk.BooleanVar(self, True)
+        self.gamemodes_checked = tk.BooleanVar(self, True)
+        self.price_checked = tk.BooleanVar(self, True)
+        self.completion_checked = tk.BooleanVar(self, True)
+        self.purchase_date_checked = tk.BooleanVar(self, True)
+        self.notes_checked = tk.BooleanVar(self, True)
+        
     def go_back(self):
         Screen.current = 0
         Screen.switch_frame()
         
-    def clear(self):
+    def clear(self, all_entries = False):
+        if all_entries:
+            self.parent.ent_search_for.delete(0, "end")
         self.parent.scr_results.delete(0.0, "end")
         
     def submit(self):
-        self.clear()
-        search_parameter = 0
-        for i in range(1,len(self.parent.options)+1):
-            if self.parent.tk_search_by.get() == self.parent.options[i]:
-                search_parameter = i-1
-                break
-        for key in range(1, len(games.keys())+1):
-            if self.parent.ent_search_for.get().lower() in games[key][search_parameter].lower():
-                self.print_game(games[key])
+        if self.parent.tk_search_by.get() != "Select Option":
+            self.clear()
+            search_parameter = 0
+            for i in range(1,len(self.parent.options)+1):
+                if self.parent.tk_search_by.get() == self.parent.options[i]:
+                    search_parameter = i-1
+                    break
+            for key in range(1, len(games.keys())+1):
+                if self.parent.ent_search_for.get().lower() in games[key][search_parameter].lower():
+                    self.print_game(games[key])
+        else:
+            pass
 
     
     def print_game(self, game):
-        if self.genre_checked.get():
-            self.parent.scr_results.insert("end", "Genre:              " + game[0] + "\n")
-        if self.title_checked.get():
-            self.parent.scr_results.insert("end", "Title:              " + game[1] + "\n")
-        if self.developer_checked.get():
-            self.parent.scr_results.insert("end", "Developer:          " + game[2] + "\n")
-        if self.publisher_checked.get():
-            self.parent.scr_results.insert("end", "Publisher:          " + game[3] + "\n")
-        if self.platform_checked.get():
-            self.parent.scr_results.insert("end", "Platform:           " + game[4] + "\n")
-        if self.release_date_checked.get():
-            self.parent.scr_results.insert("end", "Release Date:       " + game[5] + "\n")
-        if self.rating_checked.get():
-            self.parent.scr_results.insert("end", "Rating:             " + game[6] + "\n")
-        if self.gamemodes_checked.get():
-            self.parent.scr_results.insert("end", "Mode(s)?:           " + game[7] + "\n")
-        if self.price_checked.get():
-            self.parent.scr_results.insert("end", "Price (USD):        " + game[8] + "\n")
-        if self.completion_checked.get():
-            self.parent.scr_results.insert("end", "Completed?:         " + game[9] + "\n")
-        if self.purchase_date_checked.get():
-            self.parent.scr_results.insert("end", "Purchase Date:      " + game[10] + "\n")
-        if self.notes_checked.get():
-            self.parent.scr_results.insert("end", "Notes:              " + game[11] + "\n")
+        checked_list = [self.genre_checked.get(), self.title_checked.get(),
+                        self.developer_checked.get(), self.publisher_checked.get(),
+                        self.platform_checked.get(), self.release_date_checked.get(),
+                        self.rating_checked.get(), self.gamemodes_checked.get(),
+                        self.price_checked.get(), self.completion_checked.get(),
+                        self.purchase_date_checked.get(), self.notes_checked.get()]
+        
+        catergories = ["Genre:              ", "Title:              ", "Developer:          ",
+                       "Publisher:          ", "Platform:           ", "Release Date:       ",
+                       "Rating:             ", "Mode(s)?:           ", "Price (USD):        ",
+                       "Completed?:         ", "Purchase Date:      ", "Notes:              \n"]
+        
+        for parameter in range(0, len(checked_list)):
+            if checked_list[parameter]:
+                self.parent.scr_results.insert("end",catergories[parameter] + game[parameter] + "\n")
         self.parent.scr_results.insert("end","-------------------" + "\n")
         
         
