@@ -61,7 +61,7 @@ class MainMenu(Screen):
     
     def raise_search(self):
         Screen.current = 3
-        screens[3].frm_search_buttons.clear(all_entries = True)
+        screens[3].frm_search_buttons.clear()
         Screen.switch_frame()
         
     def raise_remove(self):
@@ -422,7 +422,11 @@ class EditSelect(tk.Frame):
         
     def confirm(self):
         if self.tk_which_title.get() == self.titles[0]:
-            pass
+            popup = tk.Tk()
+            popup.title("")
+            msg = "ERROR: select a title"
+            frm_error = ErrorMessage(popup, msg)
+            frm_error.grid(row = 0, column = 0, sticky = "news")
         else:
             Screen.current = 2
             for i in range(len(self.titles)+1):
@@ -510,14 +514,29 @@ class Search_Buttons(tk.Frame):
         Screen.current = 0
         Screen.switch_frame()
         
-    def clear(self, all_entries = False):
-        if all_entries:
-            self.parent.ent_search_for.delete(0, "end")
+    def clear(self):
+        self.parent.ent_search_for.delete(0, "end")
+        
+        self.genre_checked.set(True)
+        self.title_checked.set(True)
+        self.developer_checked.set(True)
+        self.publisher_checked.set(True)
+        self.platform_checked.set(True)
+        self.release_date_checked.set(True)
+        self.rating_checked.set(True)
+        self.gamemodes_checked.set(True)
+        self.price_checked.set(True)
+        self.completion_checked.set(True)
+        self.purchase_date_checked.set(True)
+        self.notes_checked.set(True)
+        
+        self.parent.tk_search_by.set(self.parent.options[0])
+        
         self.parent.scr_results.delete(0.0, "end")
         
     def submit(self):
         if self.parent.tk_search_by.get() != "Select Option":
-            self.clear()
+            self.parent.scr_results.delete(0.0, "end")
             search_parameter = 0
             for i in range(1,len(self.parent.options)+1):
                 if self.parent.tk_search_by.get() == self.parent.options[i]:
@@ -624,7 +643,11 @@ class Remove(tk.Frame):
         
     def remove(self):
         if self.tk_which_title.get() == self.titles[0]:
-            pass
+            popup = tk.Tk()
+            popup.title("")
+            msg = "ERROR: select a title"
+            frm_error = ErrorMessage(popup, msg)
+            frm_error.grid(row = 0, column = 0, sticky = "news")
         else:
             msg_box = messagebox.askquestion("Confirm", "Are you sure you want to remove this title:\n" + self.tk_which_title.get())
             if msg_box == "yes":
@@ -642,6 +665,19 @@ class Remove(tk.Frame):
                 messagebox.showinfo("Remove", "Title Removed")
             if msg_box == "no":
                 self.parent.destroy()
+
+class ErrorMessage(tk.Frame):
+    def __init__(self, parent, msg = "generic"):
+        tk.Frame.__init__(self, master = parent)
+        self.parent = parent
+        
+        self.lbl_continue = tk.Label(self, text = msg, font = TITLE_FONT)
+        self.lbl_continue.grid(row = 0, column = 0, sticky = "news")
+        
+        self.btn_ok = tk.Button(self, text = "OK", command = self.parent.destroy, font = NON_TITLE_FONT)
+    
+        self.btn_ok.grid(row = 1, column = 0, sticky = "news")
+
         
 if __name__ == "__main__":
     #File Loader
